@@ -1,0 +1,78 @@
+from flask import  Flask,request
+app=Flask(__name__)
+
+import sqlite3
+con=sqlite3.connect('sample.db')
+cur=con.cursor()
+con.execute("CREATE TABLE IF NOT EXISTS user (user_id TEXT,password TEXT)")
+con.commit()
+con.close()
+
+@app.route('/')
+def homepage():
+    return "Welcome to my website"
+
+@app.route('/reg',methods= ['POST'])
+def reg1():
+    data = request.get_json()
+    con = sqlite3.connect('sample.db')
+    cur = con.cursor()
+    data=con.execute("INSERT INTO user VALUES ('{}','{}')".format(data['user_id'],data['password']))
+    print(data)
+    con.commit()
+    con.close()
+    return "Account Created Successfully"
+
+@app.route('/login',methods=['post'])
+def login():
+    data=request.get_json()
+    con=sqlite3.connect('sample.db')
+    cur=con.cursor()
+    data=cur.execute("select * from user where user_id='{}'".format(data['user_id']))
+    data=cur.fetchall()
+    con.commit()
+    con.close()
+    if len(data)>0:
+        return 'login successfully'
+    else:
+        return 'you have no account'
+
+@app.route('/showall')
+def show():
+    con=sqlite3.connect('sample.db')
+    cur=con.cursor()
+    data =cur.execute("select * from user")
+    data=cur.fetchall()
+    con.commit()
+    con.close()
+    print(data)
+    return dict(data)
+
+@app.route('/delete',methods=['POST'])
+def delete():
+    data=request.get_json()
+    con=sqlite3.connect('sample.db')
+    cur=con.cursor()
+    data=cur.execute("delete from user where user_id='{}'".format(data['user_id']))
+    data=cur.fetchall()
+    con.commit()
+    con.close()
+    return "delete you account successfully..."
+
+
+@app.route('/update',methods=["POST"])
+def update():
+    data=request.get_json()
+    con=sqlite3.connect('sample.db')
+    cur=con.cursor()
+    data=cur.execute("Update user SET password='{}' where user_id='{}'".format(data['password'],data['user_id']))
+    data = cur.fetchall()
+    con.commit()
+    con.close()
+    return "your password is updated successfully...."
+
+
+
+
+
+app.run(port=5005)
